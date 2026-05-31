@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,6 +32,8 @@ public class Splash extends AppCompatActivity {
             });
         }
 
+        animateText("NovaFlix");
+
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             Intent intent;
             if (FirebaseAuthManager.isSignedIn()) {
@@ -40,8 +43,21 @@ public class Splash extends AppCompatActivity {
             }
             startActivity(intent);
             finish();
-        }, 2000);
+        }, 2500); // Increased delay slightly to allow animation to finish
     }
 
-
+    private void animateText(String fullText) {
+        TextView textView = findViewById(R.id.appNameTextView);
+        if (textView == null) return;
+        
+        textView.setText(""); // Start with empty
+        long delay = 150; // ms between letters
+        
+        for (int i = 0; i < fullText.length(); i++) {
+            final int index = i;
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                textView.append(String.valueOf(fullText.charAt(index)));
+            }, delay * (i + 1));
+        }
+    }
 }

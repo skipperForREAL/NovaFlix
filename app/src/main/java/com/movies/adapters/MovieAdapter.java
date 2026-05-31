@@ -21,10 +21,17 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     private Context context;
     private List<Movie> movieList;
+    private boolean isTv = false;
 
     public MovieAdapter(Context context, List<Movie> movieList) {
         this.context = context;
         this.movieList = movieList;
+    }
+
+    public MovieAdapter(Context context, List<Movie> movieList, boolean isTv) {
+        this.context = context;
+        this.movieList = movieList;
+        this.isTv = isTv;
     }
 
     @NonNull
@@ -59,6 +66,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             intent.putExtra("movie_backdrop", movie.getBackdropPath()); // Important for the big background
             intent.putExtra("movie_rating", movie.getVoteAverage());
             intent.putExtra("movie_date", movie.getReleaseDate());
+            intent.putExtra("is_tv", isTv);
 
             context.startActivity(intent);
         });

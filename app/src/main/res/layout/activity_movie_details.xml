@@ -43,7 +43,7 @@
             android:id="@+id/btnBack"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:src="@drawable/ic_home"
+            android:src="@drawable/ic_back"
             app:tint="@color/white" />
 
         <TextView
@@ -125,6 +125,22 @@
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
+
+            <!-- Play Trailer Button (Moved here for better clickability and alignment) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPlayTrailer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Watch Trailer"
+                app:icon="@drawable/ic_coming"
+                android:backgroundTint="#E50914"
+                android:textColor="@color/white"
+                app:cornerRadius="24dp"
+                android:layout_marginEnd="24dp"
+                app:layout_constraintTop_toTopOf="@+id/cardPoster"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="@+id/cardPoster"
+                app:layout_constraintVertical_bias="0.2"/>
 
             <!-- Movie Title -->
             <TextView
@@ -240,6 +256,20 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginStart="24dp"
                 android:clipToPadding="false"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tabScroll" />
+
+            <!-- Reviews Section (Initially Hidden) -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvReviews"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
+                android:nestedScrollingEnabled="false"
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

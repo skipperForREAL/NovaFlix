@@ -22,10 +22,16 @@ public class HeroAdapter extends RecyclerView.Adapter<HeroAdapter.HeroViewHolder
 
     private final Context context;
     private final List<Movie> movieList;
+    private final boolean isTv;
 
     public HeroAdapter(Context context, List<Movie> movieList) {
+        this(context, movieList, false);
+    }
+
+    public HeroAdapter(Context context, List<Movie> movieList, boolean isTv) {
         this.context = context;
         this.movieList = movieList;
+        this.isTv = isTv;
     }
 
     @NonNull
@@ -57,6 +63,7 @@ public class HeroAdapter extends RecyclerView.Adapter<HeroAdapter.HeroViewHolder
             intent.putExtra("movie_backdrop", movie.getBackdropPath());
             intent.putExtra("movie_rating", movie.getVoteAverage());
             intent.putExtra("movie_date", movie.getReleaseDate());
+            intent.putExtra("is_tv", isTv);
             context.startActivity(intent);
         });
     }

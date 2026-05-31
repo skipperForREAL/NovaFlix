@@ -32,6 +32,17 @@
                 android:layout_height="wrap_content"
                 android:padding="24dp">
 
+                <!-- Back Button -->
+                <ImageView
+                    android:id="@+id/btnBack"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_home"
+                    app:tint="@color/black"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:contentDescription="Back" />
+
                 <!-- Title -->
                 <TextView
                     android:id="@+id/titleTextView"

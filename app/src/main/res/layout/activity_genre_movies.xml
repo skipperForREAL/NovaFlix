@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#121212"
-    tools:context=".activities.TvShowsActivity">
+    tools:context=".activities.GenreMoviesActivity">
 
     <!-- Top Bar -->
     <com.google.android.material.appbar.AppBarLayout
@@ -21,13 +21,13 @@
             android:layout_height="80dp"
             android:paddingTop="20dp"
             app:titleTextColor="@color/white"
-            app:title="NovaFlix TV"
-            app:navigationIcon="@drawable/ic_back"
+            app:title="Genre Movies"
+            app:navigationIcon="@drawable/ic_new_home"
             app:navigationIconTint="@color/white" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvTvShows"
+        android:id="@+id/rvGenreMovies"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"

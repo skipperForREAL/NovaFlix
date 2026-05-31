@@ -10,6 +10,9 @@ public class Movie {
     @SerializedName("title")
     private String title;
 
+    @SerializedName("name")
+    private String name;
+
     @SerializedName("overview")
     private String overview;
 
@@ -27,7 +30,10 @@ public class Movie {
 
     // Getters
     public int getId() { return id; }
-    public String getTitle() { return title; }
+    public String getTitle() { 
+        return title != null ? title : name; 
+    }
+    public String getName() { return name; }
     public String getOverview() { return overview; }
     public String getPosterPath() { return posterPath; }
     public String getBackdropPath() { return backdropPath; }

@@ -2,6 +2,8 @@ package com.movies.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -15,14 +17,18 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SnapHelper;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.movies.R;
+import com.movies.adapters.GenreAdapter;
 import com.movies.adapters.HeroAdapter;
 import com.movies.adapters.MovieAdapter;
 import com.movies.api.RetrofitClient;
+import com.movies.models.Genre;
 import com.movies.models.Movie;
 import com.movies.models.MovieResponse;
 import com.movies.utils.FirebaseAuthManager;
@@ -41,10 +47,20 @@ public class MainActivity extends AppCompatActivity {
 
     private List<Movie> movieList;
     private List<Movie> upcomingList;
+    private List<Movie> topRatedList;
+    private List<Movie> heroTvList;
+    private List<Genre> genreList;
     private MovieAdapter adapter;
     private MovieAdapter upcomingAdapter;
+    private MovieAdapter topRatedAdapter;
     private HeroAdapter heroAdapter;
+    private GenreAdapter genreAdapter;
     private ProgressBar progressBar;
+
+    private Handler autoScrollHandler;
+    private Runnable autoScrollRunnable;
+    private int currentHeroPosition = 0;
+    private RecyclerView rvHero;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,17 +71,22 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         RecyclerView recyclerView = findViewById(R.id.rvPopular);
-        RecyclerView rvHero = findViewById(R.id.rvHero);
+        rvHero = findViewById(R.id.rvHero);
         RecyclerView rvLatest = findViewById(R.id.rvLatest);
         progressBar = findViewById(R.id.progressBar);
 
         rvHero.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        movieList = new ArrayList<>();
-        heroAdapter = new HeroAdapter(this, movieList);
+        heroTvList = new ArrayList<>();
+        heroAdapter = new HeroAdapter(this, heroTvList, true);
         rvHero.setAdapter(heroAdapter);
+
+        // Add SnapHelper for smooth hero scrolling
+        SnapHelper snapHelper = new LinearSnapHelper();
+        snapHelper.attachToRecyclerView(rvHero);
 
         // Setup Latest RecyclerView
         rvLatest.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        movieList = new ArrayList<>();
         adapter = new MovieAdapter(this, movieList);
         rvLatest.setAdapter(adapter);
 
@@ -75,13 +96,30 @@ public class MainActivity extends AppCompatActivity {
         upcomingAdapter = new MovieAdapter(this, upcomingList);
         recyclerView.setAdapter(upcomingAdapter);
 
+        // Setup Top Rated RecyclerView
+        RecyclerView rvTopRated = findViewById(R.id.rvTopRated);
+        rvTopRated.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        topRatedList = new ArrayList<>();
+        topRatedAdapter = new MovieAdapter(this, topRatedList);
+        rvTopRated.setAdapter(topRatedAdapter);
+
+        // Setup Genres RecyclerView
+        RecyclerView rvGenres = findViewById(R.id.rvGenres);
+        rvGenres.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        genreList = new ArrayList<>();
+        genreAdapter = new GenreAdapter(this, genreList);
+        rvGenres.setAdapter(genreAdapter);
+
         // Setup Search
         EditText etSearch = findViewById(R.id.etSearch);
         etSearch.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 String query = etSearch.getText().toString().trim();
                 if (!query.isEmpty()) {
-                    searchMovies(query);
+                    Intent intent = new Intent(MainActivity.this, GenreMoviesActivity.class);
+                    intent.putExtra("search_query", query);
+                    intent.putExtra("genre_name", "Results for: " + query);
+                    startActivity(intent);
                 }
                 return true;
             }
@@ -89,18 +127,32 @@ public class MainActivity extends AppCompatActivity {
         });
 
         setupBottomNavigation();
+        loadMovies();
+    }
+
+    private void loadMovies() {
         loadPopularMovies();
         loadUpcomingMovies();
+        loadTopRatedMovies();
+        loadHeroTvShows();
+        loadGenres();
     }
 
     private void setupBottomNavigation() {
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_home);
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
                 return true;
             } else if (id == R.id.nav_tv_shows) {
                 startActivity(new Intent(this, TvShowsActivity.class));
+                return true;
+            } else if (id == R.id.nav_search) {
+                EditText etSearch = findViewById(R.id.etSearch);
+                if (etSearch != null) {
+                    etSearch.requestFocus();
+                }
                 return true;
             }
             return false;
@@ -124,10 +176,10 @@ public class MainActivity extends AppCompatActivity {
             finish();
             return true;
         } else if (id == R.id.about) {
-            Toast.makeText(this, "Movies Zone v1.0", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "NovaFlix v1.0", Toast.LENGTH_SHORT).show();
             return true;
         } else if (id == R.id.help) {
-            Toast.makeText(this, "Contact support@movieszone.com", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Contact support@novaflix.com", Toast.LENGTH_SHORT).show();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -149,7 +201,6 @@ public class MainActivity extends AppCompatActivity {
                                 movieList.clear();
                                 movieList.addAll(movies);
                                 adapter.notifyDataSetChanged();
-                                heroAdapter.notifyDataSetChanged();
                             } else {
                                 Toast.makeText(MainActivity.this, "No movies found", Toast.LENGTH_SHORT).show();
                             }
@@ -191,36 +242,126 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private void searchMovies(String query) {
-        progressBar.setVisibility(View.VISIBLE);
-
+    private void loadTopRatedMovies() {
         RetrofitClient.getInstance().getTmdbApi()
-                .searchMovies(API_KEY, query, "en-US", 1)
+                .getTopRatedMovies(API_KEY, "en-US", 1)
                 .enqueue(new Callback<MovieResponse>() {
                     @Override
                     public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
-                        progressBar.setVisibility(View.GONE);
-
                         if (response.isSuccessful() && response.body() != null) {
                             List<Movie> movies = response.body().getResults();
                             if (movies != null && !movies.isEmpty()) {
-                                movieList.clear();
-                                movieList.addAll(movies);
-                                adapter.notifyDataSetChanged();
-                                heroAdapter.notifyDataSetChanged();
-                            } else {
-                                Toast.makeText(MainActivity.this, "No results for: " + query, Toast.LENGTH_SHORT).show();
+                                topRatedList.clear();
+                                topRatedList.addAll(movies);
+                                topRatedAdapter.notifyDataSetChanged();
                             }
-                        } else {
-                            Toast.makeText(MainActivity.this, "Search Error: " + response.code(), Toast.LENGTH_SHORT).show();
                         }
                     }
 
                     @Override
                     public void onFailure(Call<MovieResponse> call, Throwable t) {
-                        progressBar.setVisibility(View.GONE);
-                        Toast.makeText(MainActivity.this, "Network Error", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Top Rated Failure: " + t.getMessage());
                     }
                 });
+    }
+
+    private void startHeroAutoScroll() {
+        if (autoScrollHandler != null) return; // Already running
+
+        autoScrollHandler = new Handler(Looper.getMainLooper());
+        autoScrollRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (heroAdapter.getItemCount() > 0) {
+                    currentHeroPosition = (currentHeroPosition + 1) % heroAdapter.getItemCount();
+                    rvHero.smoothScrollToPosition(currentHeroPosition);
+                }
+                autoScrollHandler.postDelayed(this, 3000);
+            }
+        };
+        autoScrollHandler.postDelayed(autoScrollRunnable, 3000);
+    }
+
+    private void loadHeroTvShows() {
+        RetrofitClient.getInstance().getTmdbApi()
+                .getTopRatedTvShows(API_KEY, "en-US", 1)
+                .enqueue(new Callback<MovieResponse>() {
+                    @Override
+                    public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            List<Movie> tvShows = response.body().getResults();
+                            if (tvShows != null && !tvShows.isEmpty()) {
+                                heroTvList.clear();
+                                heroTvList.addAll(tvShows);
+                                heroAdapter.notifyDataSetChanged();
+                                startHeroAutoScroll();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<MovieResponse> call, Throwable t) {
+                        Log.e(TAG, "Hero TV Failure: " + t.getMessage());
+                    }
+                });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (autoScrollHandler != null) {
+            autoScrollHandler.removeCallbacks(autoScrollRunnable);
+            autoScrollHandler = null;
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (heroTvList != null && !heroTvList.isEmpty()) {
+            startHeroAutoScroll();
+        }
+    }
+
+    private void loadGenres() {
+        genreList.clear();
+        // Genres from TMDB: Horror (27), Comedy (35), Action (28), Drama (18), Thriller (53), Romance (10749)
+        // Language: Hindi (hi)
+        genreList.add(new Genre("28", "Action", null));
+        genreList.add(new Genre("35", "Comedy", null));
+        genreList.add(new Genre("27", "Horror", null));
+        genreList.add(new Genre("18", "Drama", null));
+        genreList.add(new Genre("53", "Thriller", null));
+        genreList.add(new Genre("10749", "Romance", null));
+        genreList.add(new Genre(null, "Hindi", "hi"));
+
+        genreAdapter.notifyDataSetChanged();
+
+        // Load a representative poster for each genre
+        for (Genre g : genreList) {
+            fetchPosterForGenre(g);
+        }
+    }
+
+    private void fetchPosterForGenre(Genre g) {
+        Call<MovieResponse> call;
+        if (g.getLanguageCode() != null) {
+            call = RetrofitClient.getInstance().getTmdbApi().getMoviesByLanguage(API_KEY, g.getLanguageCode(), "en-US", 1);
+        } else {
+            call = RetrofitClient.getInstance().getTmdbApi().getMoviesByGenre(API_KEY, g.getId(), "en-US", 1);
+        }
+
+        call.enqueue(new Callback<MovieResponse>() {
+            @Override
+            public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().getResults().isEmpty()) {
+                    g.setPosterPath(response.body().getResults().get(0).getPosterPath());
+                    genreAdapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<MovieResponse> call, Throwable t) { }
+        });
     }
 }

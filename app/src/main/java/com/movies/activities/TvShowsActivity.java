@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.movies.R;
 import com.movies.adapters.MovieAdapter;
 import com.movies.api.RetrofitClient;
@@ -46,7 +47,7 @@ public class TvShowsActivity extends AppCompatActivity {
 
         tvShowList = new ArrayList<>();
         // Reusing MovieAdapter as TV shows have similar fields (name/title, poster, overview)
-        adapter = new MovieAdapter(this, tvShowList);
+        adapter = new MovieAdapter(this, tvShowList, true);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         
         // Add Spacing between items
@@ -56,6 +57,10 @@ public class TvShowsActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         setupBottomNavigation(bottomNavigationView);
+        
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setNavigationOnClickListener(v -> finish());
+
         loadTrendingTvShows();
     }
 
@@ -67,6 +72,12 @@ public class TvShowsActivity extends AppCompatActivity {
                 finish();
                 return true;
             } else if (id == R.id.nav_tv_shows) {
+                return true;
+            } else if (id == R.id.nav_search) {
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                finish();
                 return true;
             }
             return false;

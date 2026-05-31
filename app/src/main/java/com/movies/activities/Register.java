@@ -59,6 +59,7 @@ public class Register extends AppCompatActivity {
         }
 
         initViews();
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
         googleSignInClient = FirebaseAuthManager.getGoogleSignInClient(this);
 
         if (FirebaseAuthManager.isSignedIn()) {

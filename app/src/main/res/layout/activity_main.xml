@@ -43,7 +43,6 @@
                     android:id="@+id/etSearch"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
-                    android:drawableEnd="@drawable/ic_search"
                     android:drawableTint="@color/gray"
                     android:hint="Search movies..."
                     android:imeOptions="actionSearch"
@@ -80,8 +79,8 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvHero"
                 android:layout_width="match_parent"
-                android:layout_height="220dp"
-                android:layout_marginTop="16dp"
+                android:layout_height="350dp"
+                android:layout_marginTop="30dp"
                 android:clipToPadding="false"
                 android:paddingStart="20dp"
                 android:paddingEnd="20dp" />
@@ -122,6 +121,50 @@
             <!-- E. Upcoming Movies Horizontal List -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvPopular"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:clipToPadding="false"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:nestedScrollingEnabled="false"/>
+
+            <!-- F. Category Title: Top Rated Movies -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Top Rated"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="24dp"/>
+
+            <!-- G. Top Rated Movies Horizontal List -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvTopRated"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:clipToPadding="false"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:nestedScrollingEnabled="false"/>
+
+            <!-- H. Category Title: Browse by Genre -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Browse by Genre"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="24dp"/>
+
+            <!-- I. Genres Horizontal List -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvGenres"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
